@@ -20,8 +20,8 @@ type Input struct {
 
 func main() {
 	input := loadInput("day02/input.txt")
-	part1(input)
-	//part2(input)
+	//part1(input)
+	part2(input)
 }
 
 func loadInput(filepath string) Input {
@@ -96,6 +96,36 @@ func part2(input Input) {
 }
 
 func isInvalidIdPart2(id int) bool {
-	// TODO part 2
+	s := strconv.Itoa(id)
+	l := len(s)
+	if l == 1 {
+		return false
+	}
+
+	half := l / 2
+
+out:
+	for i := 1; i <= half; i++ {
+		if l%i != 0 {
+			continue
+		}
+
+		pattern := s[0:i]
+
+		nbParts := l / i
+		if nbParts < 2 {
+			log.Fatal("should not be less than 2")
+		}
+
+		for p := 1; p < nbParts; p++ {
+			offset := p * i
+			if pattern != s[offset:offset+i] {
+				continue out
+			}
+		}
+
+		return true
+	}
+
 	return false
 }
