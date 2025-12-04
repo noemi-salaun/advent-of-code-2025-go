@@ -13,8 +13,8 @@ type Input []Bank
 
 func main() {
 	input := loadInput("day03/input.txt")
-	part1(input)
-	//part2(input)
+	//part1(input)
+	part2(input)
 }
 
 func loadInput(filepath string) Input {
@@ -48,13 +48,13 @@ func part1(input Input) {
 	var result int
 
 	for _, bank := range input {
-		result += turnOnBatteries(bank)
+		result += turnOn2Batteries(bank)
 	}
 
 	fmt.Printf("Part 1 = %d\n", result)
 }
 
-func turnOnBatteries(bank Bank) int {
+func turnOn2Batteries(bank Bank) int {
 	var max1 int
 	var max2 int
 
@@ -79,5 +79,46 @@ func turnOnBatteries(bank Bank) int {
 func part2(input Input) {
 	var result int
 
+	for _, bank := range input {
+		result += turnOn12Batteries(bank)
+	}
+
 	fmt.Printf("Part 2 = %d\n", result)
+}
+
+func turnOn12Batteries(bank Bank) int {
+	var batteries [12]int
+	var remaining int
+	var needs int
+	length := len(bank)
+
+out:
+	for i, number := range bank {
+		for j, b := range batteries {
+			remaining = length - i
+			needs = 12 - j
+			if number > b && remaining >= needs {
+				batteries[j] = number
+				clearSliceOfArray(batteries[j+1:])
+				continue out
+			}
+		}
+	}
+
+	var compose string
+	for _, b := range batteries {
+		compose += strconv.Itoa(b)
+	}
+
+	power, err := strconv.Atoi(compose)
+	if err != nil {
+		log.Fatalf("Cannot convert power from string %s to int", compose)
+	}
+	return power
+}
+
+func clearSliceOfArray(slice []int) {
+	for i := range slice {
+		slice[i] = 0
+	}
 }
