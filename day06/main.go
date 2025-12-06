@@ -47,7 +47,8 @@ func (i *Input) calculateGrandTotal() int {
 }
 
 func main() {
-	input := loadInputPart1("day06/input.txt")
+	//input := loadInputPart1("day06/input.txt")
+	input := loadInputPart2("day06/input.txt")
 	result := input.calculateGrandTotal()
 	fmt.Printf("Result = %d\n", result)
 }
@@ -88,6 +89,69 @@ func loadInputPart1(filepath string) Input {
 		}
 		input.problems = append(input.problems, problem)
 	}
+
+	return input
+}
+
+func loadInputPart2(filepath string) Input {
+	file, err := os.Open(filepath)
+	if err != nil {
+		log.Fatalf("Failed to open file: %s", err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+
+	var input Input
+
+	var lines [][]string
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		lines = append(lines, strings.Split(line, ""))
+	}
+
+	temp := make([][]string, len(lines[0]))
+	for i := range temp {
+		temp[i] = make([]string, len(lines))
+	}
+
+	for y := range lines {
+		for x := range lines[y] {
+			temp[len(lines[y])-x-1][y] = lines[y][x]
+		}
+	}
+
+	var columns []string
+	for _, c := range temp {
+		columns = append(columns, strings.Join(c, ""))
+	}
+
+	var problem Problem
+
+	for _, c := range columns {
+		if strings.Contains(c, "+") {
+			problem.operator = "+"
+			c = strings.ReplaceAll(c, "+", "")
+		} else if strings.Contains(c, "*") {
+			problem.operator = "*"
+			c = strings.ReplaceAll(c, "*", "")
+		}
+
+		c = strings.TrimSpace(c)
+
+		if c == "" {
+			input.problems = append(input.problems, problem)
+			problem = Problem{}
+		} else {
+			num, err := strconv.Atoi(c)
+			if err != nil {
+				log.Fatalf("Cannot convert %s", c)
+			}
+			problem.elements = append(problem.elements, num)
+		}
+	}
+	input.problems = append(input.problems, problem)
 
 	return input
 }
