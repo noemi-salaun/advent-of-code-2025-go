@@ -21,8 +21,8 @@ type Input struct {
 
 func main() {
 	input := loadInput("day05/input.txt")
-	part1(input)
-	//part2(input)
+	//part1(input)
+	part2(input)
 }
 
 func loadInput(filepath string) Input {
@@ -86,5 +86,77 @@ out:
 func part2(input Input) {
 	var result int
 
+	var ranges = input.fresh
+
+	var safeRanges []Range
+	var nextRanges []Range
+	var atLeastOneNewMerge bool
+
+	for {
+		atLeastOneNewMerge = false
+
+		for {
+			if len(ranges) == 0 {
+				break
+			}
+
+			var current = ranges[0]
+			var others = ranges[1:]
+
+			for _, o := range others {
+				merge, merged := mergeRanges(current, o)
+				if merged {
+					current = merge
+					atLeastOneNewMerge = true
+				} else {
+					nextRanges = append(nextRanges, o)
+				}
+			}
+
+			safeRanges = append(safeRanges, current)
+			ranges = nextRanges
+			nextRanges = []Range{}
+		}
+
+		if !atLeastOneNewMerge {
+			break
+		}
+		ranges = safeRanges
+		safeRanges = []Range{}
+		nextRanges = []Range{}
+	}
+
+	for _, r := range safeRanges {
+		result += (r.end - r.start) + 1
+	}
+
 	fmt.Printf("Part 2 = %d\n", result)
+}
+
+func mergeRanges(r1 Range, r2 Range) (Range, bool) {
+	if r1.end < r2.start {
+		return r1, false
+	}
+
+	if r1.start <= r2.start && r1.end >= r2.start && r1.end <= r2.end {
+		return Range{r1.start, r2.end}, true
+	}
+
+	if r1.start <= r2.start && r1.end >= r2.end {
+		return r1, true
+	}
+
+	if r1.start >= r2.start && r1.start <= r2.end && r1.end >= r2.end {
+		return Range{r2.start, r1.end}, true
+	}
+
+	if r1.start > r2.end {
+		return r1, false
+	}
+
+	if r1.start >= r2.start && r1.end <= r2.end {
+		return r2, true
+	}
+
+	panic("should not happened")
 }
