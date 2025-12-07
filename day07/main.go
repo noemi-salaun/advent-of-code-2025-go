@@ -17,8 +17,8 @@ type Input struct {
 
 func main() {
 	input := loadInput("day07/input.txt")
-	part1(input)
-	//part2(input)
+	//part1(input)
+	part2(input)
 }
 
 func loadInput(filepath string) Input {
@@ -74,8 +74,37 @@ func part1(input Input) {
 	fmt.Printf("Part 1 = %d\n", result)
 }
 
+var theGrid []Line
+
 func part2(input Input) {
 	var result int
 
+	theGrid = input.grid
+	result = countTimelines(0, input.start)
+
 	fmt.Printf("Part 2 = %d\n", result)
+}
+
+var cache = map[string]int{}
+
+func countTimelines(depth int, beam int) int {
+	key := fmt.Sprintf("%d-%d", depth, beam)
+
+	var count int
+	var ok bool
+
+	count, ok = cache[key]
+	if !ok {
+		if depth == len(theGrid)-1 {
+			count = 1
+		} else if theGrid[depth][beam] == "^" {
+			count = countTimelines(depth+1, beam-1) + countTimelines(depth+1, beam+1)
+		} else {
+			count = countTimelines(depth+1, beam)
+		}
+
+		cache[key] = count
+	}
+
+	return count
 }
