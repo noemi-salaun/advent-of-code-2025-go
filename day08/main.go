@@ -29,8 +29,8 @@ type Input []Coordinates
 
 func main() {
 	input := loadInput("day08/input.txt")
-	part1(input, 1000)
-	//part2(input)
+	//part1(input, 1000)
+	part2(input)
 }
 
 func loadInput(filepath string) Input {
@@ -153,6 +153,66 @@ func part1(input Input, nbPairs int) {
 
 func part2(input Input) {
 	var result int
+
+	var junctions []Junction
+	var circuits = map[int][]*Coordinates{}
+
+	for i := 0; i < len(input); i++ {
+		for j := i + 1; j < len(input); j++ {
+			dist := distance(input[i], input[j])
+			junctions = append(junctions, Junction{
+				coordA:   &input[i],
+				coordB:   &input[j],
+				distance: dist,
+			})
+		}
+	}
+
+	slices.SortFunc(junctions, func(a, b Junction) int {
+		if a.distance > b.distance {
+			return 1
+		}
+		if a.distance < b.distance {
+			return -1
+		}
+		return 0
+	})
+
+	nextCircuitId := 1
+
+	for _, junction := range junctions {
+		coordA := junction.coordA
+		coordB := junction.coordB
+
+		if coordA.circuit != 0 && coordB.circuit == coordA.circuit {
+			continue
+		}
+
+		if coordA.circuit != 0 && coordB.circuit == 0 {
+			coordB.circuit = coordA.circuit
+			circuits[coordA.circuit] = append(circuits[coordA.circuit], coordB)
+		} else if coordB.circuit != 0 && coordA.circuit == 0 {
+			coordA.circuit = coordB.circuit
+			circuits[coordB.circuit] = append(circuits[coordB.circuit], coordA)
+		} else if coordA.circuit != 0 && coordB.circuit != 0 {
+			circuitBId := coordB.circuit
+			for _, coord := range circuits[coordB.circuit] {
+				coord.circuit = coordA.circuit
+				circuits[coordA.circuit] = append(circuits[coordA.circuit], coord)
+			}
+			delete(circuits, circuitBId)
+		} else if coordA.circuit == 0 && coordB.circuit == 0 {
+			coordA.circuit = nextCircuitId
+			coordB.circuit = nextCircuitId
+			circuits[nextCircuitId] = append(circuits[nextCircuitId], coordA, coordB)
+			nextCircuitId++
+		}
+
+		if len(circuits) == 1 && len(slices.Collect(maps.Values(circuits))[0]) == len(input) {
+			result = coordA.x * coordB.x
+			break
+		}
+	}
 
 	fmt.Printf("Part 2 = %d\n", result)
 }
